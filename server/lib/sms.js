@@ -8,9 +8,11 @@ function receive(data)
 {
 	if (!client) return Promise.resolve();
 
-	var phone = data.From;
-	if (!phone) return Promise.reject(new Error('No from phone provided'));
+	if (!data.From) return Promise.reject(new Error('No from phone provided'));
 
-	return Promise.resolve();
+	return client.users.find(
+	{
+		phone: data.From
+	});
 }
 module.exports.receive = receive;
