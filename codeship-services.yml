@@ -1,0 +1,19 @@
+### Testing
+tests:
+  image: glesage/strong-build-deploy
+  encrypted_env_file: deploy/codeship.env.encrypted
+  add_docker: true
+  volumes:
+    - ./:/deploy
+
+### Google Cloud Deployment Service
+gcs_deployment:
+  image: glesage/google-cloud-deployment
+  encrypted_env_file: deploy/codeship.env.encrypted
+  add_docker: true
+  volumes:
+    - ./:/deploy
+gcr_dockercfg:
+  image: codeship/gcr-dockercfg-generator
+  add_docker: true
+  encrypted_env_file: deploy/codeship.env.encrypted

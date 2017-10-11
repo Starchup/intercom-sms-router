@@ -1,0 +1,4 @@
+## Deploying With GCS
+- service: gcs_deployment
+  command: deploy/deploy/gcs.sh
+  tag: ^(master|stage)
