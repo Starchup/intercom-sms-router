@@ -6,8 +6,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const config = require('./config.json');
-const sms = require('./lib/sms.js');
-const sms = require('./lib/intercom.js');
+const messages = require('./lib/messages.js');
 
 const app = express();
 app.use(cors());
@@ -28,7 +27,7 @@ app.post('/sms', function (req, res)
     else if (!req.body.To) respond200(req, res);
     else
     {
-        sms.receive(req.body).then(respond200).catch(function (err)
+        messages.sms(req.body).then(respond200).catch(function (err)
         {
             res.status(400).send(JSON.stringify(err.message));
         });
@@ -41,7 +40,7 @@ app.post('/intercom', function (req, res)
     else if (!req.body.user) respond200(req, res);
     else
     {
-        intercom.receive(req.body).then(respond200).catch(function (err)
+        messages.intercom(req.body).then(respond200).catch(function (err)
         {
             res.status(400).send(JSON.stringify(err.message));
         });
