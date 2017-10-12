@@ -56,9 +56,7 @@ function receivedIntercom(data)
 		return Promise.reject(new Error('No conversation_parts messages: ' + JSON.stringify(data)));
 	}
 
-	console.log(data.conversation_message)
-
-	// console.log(res.body.conversation_message.attachments[0].url === starchupLogo );
+	if (!isSMSConvo(data)) return Promise.resolve();
 
 	return findUserById(data.user.id).then(function (user)
 	{
@@ -145,6 +143,18 @@ function createUserSMS(phone, body)
 		body: body
 
 	});
+}
+
+function isSMSConvo(convo)
+{
+	if (!convo.conversation_message.attachments) return false;
+	if (!convo.conversation_message.attachments.length) return false;
+	if (!convo.conversation_message.attachments.length) return false;
+
+	const attachment = convo.conversation_message.attachments[0];
+	if (!attachment || !attachment.url) return false;
+
+	return attachment.url === starchupLogo;
 }
 
 function formatPhone(number)
