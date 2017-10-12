@@ -61,14 +61,8 @@ function receivedIntercom(data)
 	return findUserById(data.user.id).then(function (user)
 	{
 		if (!user.phone) throw new Error('User has no phone: ' + JSON.stringify(user));
-		console.log();
-		console.log(data.conversation_parts.conversation_parts);
 		const currentMsg = data.conversation_parts.conversation_parts[0];
-		console.log();
-		console.log(currentMsg);
 		var message = htmlToText.fromString(currentMsg.body);
-		console.log();
-		console.log(message);
 		return createUserSMS(user.phone, message);
 	});
 }
