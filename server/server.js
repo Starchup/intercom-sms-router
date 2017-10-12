@@ -16,24 +16,29 @@ app.use(errorhandler());
 
 function respond200(req, res, next)
 {
-    res.status(200).send("");
+    res.sendStatus(200);
+}
+
+function respondTwilio(req, res, next)
+{
+    res.status(200).send('<Response></Response>');
 }
 
 app.post('/sms', function (req, res)
 {
-    if (!req.body) respond200(req, res);
-    else if (!req.body.Body) respond200(req, res);
-    else if (!req.body.From) respond200(req, res);
-    else if (!req.body.To) respond200(req, res);
+    if (!req.body) respondTwilio(req, res);
+    else if (!req.body.Body) respondTwilio(req, res);
+    else if (!req.body.From) respondTwilio(req, res);
+    else if (!req.body.To) respondTwilio(req, res);
     else
     {
         messages.sms(req.body).then(function ()
         {
-            respond200(req, res);
+            respondTwilio(req, res);
         }).catch(function (err)
         {
             console.error(JSON.stringify(err.message));
-            respond200(req, res);
+            respondTwilio(req, res);
         });
     }
 });
