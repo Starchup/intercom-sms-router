@@ -40,16 +40,16 @@ app.post('/sms', function (req, res)
 
 app.post('/intercom', function (req, res)
 {
-    console.log(JSON.stringify(req.body));
+    console.log(JSON.stringify(req.body.data.item));
 
     if (!req.body) respond200(req, res);
-    else if (!req.body.read) respond200(req, res);
-    else if (!req.body.read.item) respond200(req, res);
-    else if (!req.body.read.item.user) respond200(req, res);
-    else if (!req.body.read.item.conversation_parts) respond200(req, res);
+    else if (!req.body.data) respond200(req, res);
+    else if (!req.body.data.item) respond200(req, res);
+    else if (!req.body.data.item.user) respond200(req, res);
+    else if (!req.body.data.item.conversation_parts) respond200(req, res);
     else
     {
-        messages.intercom(req.body.read.item).then(function ()
+        messages.intercom(req.body.data.item).then(function ()
         {
             respond200(req, res);
         }).catch(function (err)
