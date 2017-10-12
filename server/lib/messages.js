@@ -27,6 +27,7 @@ const smsClient = Twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
  */
 function receivedSMS(data)
 {
+	console.log('receivedSMS');
 	if (!data.From) return Promise.reject(new Error('No from phone provided'));
 	if (!data.Body) return Promise.reject(new Error('No sms body provided'));
 
@@ -42,6 +43,8 @@ module.exports.sms = receivedSMS;
 
 function receivedIntercom(data)
 {
+	console.log('receivedIntercom');
+
 	if (!data.user)
 	{
 		return Promise.reject(new Error('No user provided: ' + JSON.stringify(data)));
@@ -149,6 +152,7 @@ function createUserMessage(userId, body)
 
 function createUserSMS(phone, body)
 {
+	console.log('creating a message');
 	return smsClient.messages.create(
 	{
 		to: phone,

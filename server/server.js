@@ -40,7 +40,8 @@ app.post('/sms', function (req, res)
 
 app.post('/intercom', function (req, res)
 {
-    console.log(JSON.stringify(req.body.data.item));
+    console.log('about to log');
+    console.log(JSON.stringify(req.body.data));
 
     if (!req.body) respond200(req, res);
     else if (!req.body.data) respond200(req, res);
