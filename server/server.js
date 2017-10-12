@@ -16,7 +16,7 @@ app.use(errorhandler());
 
 function respond200(req, res, next)
 {
-    res.sendStatus(200);
+    res.status(200).send();
 }
 
 app.post('/sms', function (req, res)
