@@ -13,6 +13,7 @@ if (!process.env.TWILIO_NUMBER) throw new Error('TWILIO_NUMBER env var required'
 const Intercom = require('intercom-client');
 const Twilio = require('twilio');
 const phoneParser = require('node-phonenumber');
+const htmlToText = require('html-to-text');
 
 const intercomClient = new Intercom.Client(
 {
@@ -32,6 +33,7 @@ function receivedSMS(data)
 	const formattedPhone = formatPhone(data.From);
 	return findUserByPhone(formattedPhone).then(function (user)
 	{
+
 		return createUserMessage(user.id, data.Body);
 	});
 }
@@ -40,12 +42,31 @@ module.exports.sms = receivedSMS;
 
 function receivedIntercom(data)
 {
-	if (!data.user) return Promise.reject(new Error('No user provided'));
-	if (!data.conversation_parts) return Promise.reject(new Error('No conversation_parts provided'));
+	if (!data.user)
+	{
+		return Promise.reject(new Error('No user provided: ' + JSON.stringify(data)));
+	}
+	if (!data.conversation_parts)
+	{
+		return Promise.reject(new Error('No conversation_parts provided: ' + JSON.stringify(data)));
+	}
+	if (!data.conversation_parts.length)
+	{
+		return Promise.reject(new Error('No conversation_parts provided: ' + JSON.stringify(data)));
+	}
+	if (!data.tags || !data.tags.tags || !data.tags.tags.length) return;
+
+	const smsTag = data.tags.tags.find(function (t)
+	{
+		return t.name === 'sms_convo';
+	});
+	if (!smsTag) return;
 
 	return findUserById(data.user.id).then(function (user)
 	{
-		return createUserSMS(user.phone, data.conversation_parts);
+		if (!user.phone) throw new Error('User has no phone: ' + JSON.stringify(user));
+		var message = htmlToText.fromString(data.conversation_parts[0].body);
+		return createUserSMS(user.phone, message);
 	});
 }
 module.exports.intercom = receivedIntercom;
@@ -112,7 +133,17 @@ function createUserMessage(userId, body)
 			type: "user",
 			id: userId
 		},
-		body: body
+		body: body,
+	}).then(function (res)
+	{
+		return intercomClient.tags.tag(
+		{
+			name: 'sms_convo',
+			messages: [
+			{
+				id: res.body.id
+			}]
+		});
 	});
 }
 
