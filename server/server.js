@@ -32,14 +32,11 @@ app.post('/sms', function (req, res)
     else if (!req.body.To) respondTwilio(req, res);
     else
     {
-        messages.sms(req.body).then(function ()
-        {
-            respondTwilio(req, res);
-        }).catch(function (err)
+        messages.sms(req.body).catch(function (err)
         {
             console.error(JSON.stringify(err.message));
-            respondTwilio(req, res);
         });
+        respondTwilio(req, res);
     }
 });
 
@@ -52,14 +49,11 @@ app.post('/intercom', function (req, res)
     else if (!req.body.data.item.conversation_parts) respond200(req, res);
     else
     {
-        messages.intercom(req.body.data.item).then(function ()
-        {
-            respond200(req, res);
-        }).catch(function (err)
+        messages.intercom(req.body.data.item).catch(function (err)
         {
             console.error(JSON.stringify(err.message));
-            respond200(req, res);
         });
+        respond200(req, res);
     }
 });
 
