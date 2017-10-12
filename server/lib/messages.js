@@ -207,6 +207,8 @@ function respondToConvo(userId, convoId, body)
 
 function isSMSConvo(convo)
 {
+	if (!convo.open) return false;
+
 	if (!convo.conversation_message.attachments) return false;
 	if (!convo.conversation_message.attachments.length) return false;
 
