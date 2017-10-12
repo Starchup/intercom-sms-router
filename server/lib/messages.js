@@ -75,4 +75,4 @@ function receivedIntercom(data)
 	return Promise.resolve();
 }
 
-module.exports.sms = receivedIntercom;
+module.exports.intercom = receivedIntercom;
