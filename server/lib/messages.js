@@ -32,7 +32,7 @@ function receivedSMS(data)
 	const formattedPhone = formatPhone(data.From);
 	return findUserByPhone(formattedPhone).then(function (user)
 	{
-		return createUserMessage(user.id, data.Body).then(console.log);
+		return createUserMessage(user.id, data.Body);
 	});
 }
 module.exports.sms = receivedSMS;
@@ -40,25 +40,35 @@ module.exports.sms = receivedSMS;
 
 function receivedIntercom(data)
 {
-	return Promise.resolve();
+	if (!data.user) return Promise.reject(new Error('No user provided'));
+	if (!data.conversation_parts) return Promise.reject(new Error('No conversation_parts provided'));
+
+	return findUserById(data.user.id).then(function (user)
+	{
+		return createUserSMS(user.phone, data.conversation_parts);
+	});
 }
 module.exports.intercom = receivedIntercom;
 
 /**
  * Utilities
  */
-function createUserMessage(userId, body)
+function findUserById(intercomId)
 {
-	return intercomClient.messages.create(
+	return intercomClient.users.find(
 	{
-		from:
+		id: intercomId
+	}).then(function (user)
+	{
+		// If no agents were found, throw an error
+		if (!user)
 		{
-			type: "user",
-			id: userId
-		},
-		body: body
+			throw new Error('No agent found with id: ' + intercomId);
+		}
+
+		return user;
 	});
-}
+};
 
 function findUserByPhone(phone, pages)
 {
@@ -92,6 +102,30 @@ function findUserByPhone(phone, pages)
 		return findUserByPhone(phone, res.body.pages);
 	});
 };
+
+function createUserMessage(userId, body)
+{
+	return intercomClient.messages.create(
+	{
+		from:
+		{
+			type: "user",
+			id: userId
+		},
+		body: body
+	});
+}
+
+function createUserSMS(phone, body)
+{
+	return smsClient.messages.create(
+	{
+		to: phone,
+		from: process.env.TWILIO_NUMBER,
+		body: body
+
+	});
+}
 
 function formatPhone(number)
 {
