@@ -83,7 +83,7 @@ function findUserById(intercomId)
 			throw new Error('No agent found with id: ' + intercomId);
 		}
 
-		return user;
+		return user.body;
 	});
 };
 
