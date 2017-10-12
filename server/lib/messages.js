@@ -21,7 +21,7 @@ const intercomClient = new Intercom.Client(
 });
 const smsClient = Twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
-const starchupLogo = 'https://downloads.intercomcdn.com/i/o/36366779/a50d95ad805d92aee847eb30/icon.png';
+const starchupLogo = 'https://s3-us-west-2.amazonaws.com/starchup.com/icon.png';
 
 
 /**
@@ -32,10 +32,16 @@ function receivedSMS(data)
 	if (!data.From) return Promise.reject(new Error('No from phone provided'));
 	if (!data.Body) return Promise.reject(new Error('No sms body provided'));
 
+	let user;
 	const formattedPhone = formatPhone(data.From);
-	return findUserByPhone(formattedPhone).then(function (user)
+	return findUserByPhone(formattedPhone).then(function (theUser)
 	{
-		return createUserMessage(user.id, data.Body);
+		user = theUser;
+		return findActiveConvo(user.id);
+	}).then(function (activeConvo)
+	{
+		if (!activeConvo) return createUserMessage(user.id, data.Body);
+		else return respondToConvo(user.id, activeConvo.id, data.Body);
 	});
 }
 module.exports.sms = receivedSMS;
@@ -121,6 +127,47 @@ function findUserByPhone(phone, pages)
 	});
 };
 
+function findActiveConvo(userId, pages, existingConvos)
+{
+	return findAllUserSMSConvos(userId).then(function (convos)
+	{
+		if (!convos || !convos.length) return;
+
+		return convos.sort(function (a, b)
+		{
+			return b.updated_at - a.updated_at;
+		})[0];
+	});
+}
+
+function findAllUserSMSConvos(userId, pages, convos)
+{
+	const query = {};
+
+	let prom = Promise.resolve();
+	if (pages) prom = intercomClient.nextPage(pages);
+	else prom = intercomClient.conversations.list(query);
+
+	if (!convos) convos = [];
+
+	return prom.then(function (res)
+	{
+		// If there are no more results then exit with an error
+		if (!res.body.conversations.length) return convos;
+
+		// Try to find the user by phone in this list
+		convos = convos.concat(res.body.conversations.filter(function (c)
+		{
+			return c.user.id === userId && isSMSConvo(c);
+		}));
+
+		if (!res.body.pages.next) return convos;
+
+		// If user wasn't found, scroll to next page
+		return findAllUserSMSConvos(userId, res.body.pages, convos);
+	});
+}
+
 function createUserMessage(userId, body)
 {
 	return intercomClient.messages.create(
@@ -146,16 +193,27 @@ function createUserSMS(phone, body)
 	});
 }
 
+function respondToConvo(userId, convoId, body)
+{
+	return intercomClient.conversations.reply(
+	{
+		id: convoId,
+		type: 'user',
+		intercom_user_id: userId,
+		body: htmlToText.fromString(body),
+		message_type: 'comment'
+	});
+}
+
 function isSMSConvo(convo)
 {
 	if (!convo.conversation_message.attachments) return false;
-	if (!convo.conversation_message.attachments.length) return false;
 	if (!convo.conversation_message.attachments.length) return false;
 
 	const attachment = convo.conversation_message.attachments[0];
 	if (!attachment || !attachment.url) return false;
 
-	return attachment.url === starchupLogo;
+	return attachment.name === 'icon.png';
 }
 
 function formatPhone(number)
