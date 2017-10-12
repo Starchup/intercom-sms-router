@@ -27,7 +27,6 @@ const smsClient = Twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
  */
 function receivedSMS(data)
 {
-	console.log('receivedSMS');
 	if (!data.From) return Promise.reject(new Error('No from phone provided'));
 	if (!data.Body) return Promise.reject(new Error('No sms body provided'));
 
@@ -43,8 +42,6 @@ module.exports.sms = receivedSMS;
 
 function receivedIntercom(data)
 {
-	console.log('receivedIntercom');
-
 	if (!data.user)
 	{
 		return Promise.reject(new Error('No user provided: ' + JSON.stringify(data)));
@@ -57,13 +54,6 @@ function receivedIntercom(data)
 	{
 		return Promise.reject(new Error('No conversation_parts provided: ' + JSON.stringify(data)));
 	}
-	if (!data.tags || !data.tags.tags || !data.tags.tags.length) return;
-
-	const smsTag = data.tags.tags.find(function (t)
-	{
-		return t.name === 'sms_convo';
-	});
-	if (!smsTag) return;
 
 	return findUserById(data.user.id).then(function (user)
 	{
@@ -137,22 +127,13 @@ function createUserMessage(userId, body)
 			id: userId
 		},
 		body: body,
-	}).then(function (res)
-	{
-		return intercomClient.tags.tag(
-		{
-			name: 'sms_convo',
-			messages: [
-			{
-				id: res.body.id
-			}]
-		});
+		subject: "SMS Convo " + userId,
+		attachment_urls: ['sms_convo']
 	});
 }
 
 function createUserSMS(phone, body)
 {
-	console.log('creating a message');
 	return smsClient.messages.create(
 	{
 		to: phone,
