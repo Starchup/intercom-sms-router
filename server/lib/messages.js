@@ -20,6 +20,7 @@ function receivedSMS(data)
 
 	return findUserByPhone(data.From).then(function (user)
 	{
+		console.log(user.email);
 		return createUserMessage(user.id, data.Body).then(console.log);
 	});
 }
@@ -46,7 +47,7 @@ function findUserByPhone(phone, pages)
 	return prom.then(function (res)
 	{
 		// If there are no more results then exit with an error
-		if (!res.body.users || !res.body.users.length)
+		if (!res.body.users.length || !res.body.pages.next)
 		{
 			throw new Error('No agent found with phone: ' + phone);
 		}
