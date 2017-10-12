@@ -27,16 +27,21 @@ app.post('/sms', function (req, res)
     else if (!req.body.To) respond200(req, res);
     else
     {
-        messages.sms(req.body).then(respond200).catch(function (err)
+        messages.sms(req.body).then(function ()
+        {
+            respond200(req, res);
+        }).catch(function (err)
         {
             console.error(JSON.stringify(err.message));
-            respond200();
+            respond200(req, res);
         });
     }
 });
 
 app.post('/intercom', function (req, res)
 {
+    console.log(JSON.stringify(req.body));
+
     if (!req.body) respond200(req, res);
     else if (!req.body.read) respond200(req, res);
     else if (!req.body.read.item) respond200(req, res);
@@ -44,10 +49,13 @@ app.post('/intercom', function (req, res)
     else if (!req.body.read.item.conversation_parts) respond200(req, res);
     else
     {
-        messages.intercom(req.body.read.item).then(respond200).catch(function (err)
+        messages.intercom(req.body.read.item).then(function ()
+        {
+            respond200(req, res);
+        }).catch(function (err)
         {
             console.error(JSON.stringify(err.message));
-            respond200();
+            respond200(req, res);
         });
     }
 });
