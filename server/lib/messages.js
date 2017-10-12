@@ -1,10 +1,18 @@
+/**
+ * Env var checks
+ */
 if (!process.env.INTERCOM_TOKEN) throw new Error('INTERCOM_TOKEN env var required');
 if (!process.env.TWILIO_SID) throw new Error('TWILIO_SID env var required');
 if (!process.env.TWILIO_TOKEN) throw new Error('TWILIO_TOKEN env var required');
 if (!process.env.TWILIO_NUMBER) throw new Error('TWILIO_NUMBER env var required');
 
+
+/**
+ * Dependencies
+ */
 const Intercom = require('intercom-client');
 const Twilio = require('twilio');
+const phoneParser = require('node-phonenumber');
 
 const intercomClient = new Intercom.Client(
 {
@@ -13,18 +21,32 @@ const intercomClient = new Intercom.Client(
 const smsClient = Twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
 
+/**
+ * Exports
+ */
 function receivedSMS(data)
 {
 	if (!data.From) return Promise.reject(new Error('No from phone provided'));
 	if (!data.Body) return Promise.reject(new Error('No sms body provided'));
 
-	return findUserByPhone(data.From).then(function (user)
+	const formattedPhone = formatPhone(data.From);
+	return findUserByPhone(formattedPhone).then(function (user)
 	{
-		console.log(user.email);
 		return createUserMessage(user.id, data.Body).then(console.log);
 	});
 }
+module.exports.sms = receivedSMS;
 
+
+function receivedIntercom(data)
+{
+	return Promise.resolve();
+}
+module.exports.intercom = receivedIntercom;
+
+/**
+ * Utilities
+ */
 function createUserMessage(userId, body)
 {
 	return intercomClient.messages.create(
@@ -47,7 +69,7 @@ function findUserByPhone(phone, pages)
 	return prom.then(function (res)
 	{
 		// If there are no more results then exit with an error
-		if (!res.body.users.length || !res.body.pages.next)
+		if (!res.body.users.length)
 		{
 			throw new Error('No agent found with phone: ' + phone);
 		}
@@ -55,24 +77,28 @@ function findUserByPhone(phone, pages)
 		// Try to find the user by phone in this list
 		const user = res.body.users.find(function (u)
 		{
-			return u.phone === phone;
+			return formatPhone(u.phone) === phone;
 		});
 
 		// If user was found, return it
 		if (user) return user;
+
+		if (!res.body.pages.next)
+		{
+			throw new Error('No agent found with phone: ' + phone);
+		}
 
 		// If user wasn't found, scroll to next page
 		return findUserByPhone(phone, res.body.pages);
 	});
 };
 
-module.exports.sms = receivedSMS;
-
-
-
-function receivedIntercom(data)
+function formatPhone(number)
 {
-	return Promise.resolve();
-}
+	if (!number) return;
 
-module.exports.intercom = receivedIntercom;
+	const phoneUtil = phoneParser.PhoneNumberUtil.getInstance();
+	const parsedNumber = phoneUtil.parse(number, 'US');
+
+	return phoneUtil.format(parsedNumber, phoneParser.PhoneNumberFormat.NATIONAL);
+}
