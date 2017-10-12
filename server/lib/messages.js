@@ -21,6 +21,8 @@ const intercomClient = new Intercom.Client(
 });
 const smsClient = Twilio(process.env.TWILIO_SID, process.env.TWILIO_TOKEN);
 
+const starchupLogo = 'https://downloads.intercomcdn.com/i/o/36366779/a50d95ad805d92aee847eb30/icon.png';
+
 
 /**
  * Exports
@@ -33,7 +35,6 @@ function receivedSMS(data)
 	const formattedPhone = formatPhone(data.From);
 	return findUserByPhone(formattedPhone).then(function (user)
 	{
-
 		return createUserMessage(user.id, data.Body);
 	});
 }
@@ -46,14 +47,18 @@ function receivedIntercom(data)
 	{
 		return Promise.reject(new Error('No user provided: ' + JSON.stringify(data)));
 	}
-	if (!data.conversation_parts)
+	if (!data.conversation_parts || !data.conversation_parts.conversation_parts)
 	{
 		return Promise.reject(new Error('No conversation_parts provided: ' + JSON.stringify(data)));
 	}
-	if (!data.conversation_parts.length)
+	if (!data.conversation_parts.conversation_parts.length)
 	{
-		return Promise.reject(new Error('No conversation_parts provided: ' + JSON.stringify(data)));
+		return Promise.reject(new Error('No conversation_parts messages: ' + JSON.stringify(data)));
 	}
+
+	console.log(data.conversation_message)
+
+	// console.log(res.body.conversation_message.attachments[0].url === starchupLogo );
 
 	return findUserById(data.user.id).then(function (user)
 	{
@@ -127,8 +132,7 @@ function createUserMessage(userId, body)
 			id: userId
 		},
 		body: body,
-		subject: "SMS Convo " + userId,
-		attachment_urls: ['sms_convo']
+		attachment_urls: [starchupLogo]
 	});
 }
 
