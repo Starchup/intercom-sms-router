@@ -29,7 +29,6 @@ app.post('/sms', function (req, res)
     if (!req.body) respondTwilio(req, res);
     else if (!req.body.Body) respondTwilio(req, res);
     else if (!req.body.From) respondTwilio(req, res);
-    else if (!req.body.To) respondTwilio(req, res);
     else
     {
         messages.sms(req.body).catch(function (err)
