@@ -49,8 +49,6 @@ module.exports.sms = receivedSMS;
 
 function receivedIntercom(data)
 {
-	return createUserMessage(null, 'test');
-
 	if (!data.user)
 	{
 		return Promise.reject(new Error('No user provided: ' + JSON.stringify(data)));
