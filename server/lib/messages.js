@@ -34,7 +34,7 @@ function receivedSMS(data)
 
 	let user;
 	const formattedPhone = formatPhone(data.From);
-	return findUserByPhone(formattedPhone).then(function (theUser)
+	return findOrCreateUserByPhone(formattedPhone).then(function (theUser)
 	{
 		user = theUser;
 		return findActiveConvo(user.id);
@@ -49,6 +49,8 @@ module.exports.sms = receivedSMS;
 
 function receivedIntercom(data)
 {
+	return createUserMessage(null, 'test');
+
 	if (!data.user)
 	{
 		return Promise.reject(new Error('No user provided: ' + JSON.stringify(data)));
@@ -94,7 +96,25 @@ function findUserById(intercomId)
 	});
 };
 
-function findUserByPhone(phone, pages)
+function findOrCreateUserByPhone(phone)
+{
+	return findUserByPhone(phone).catch(function ()
+	{
+		return findUserByPhone(phone, true);
+	}).catch(function ()
+	{
+		return intercomClient.users.create(
+		{
+			phone: phone,
+			user_id: Date.now()
+		}).then(function (res)
+		{
+			return res.body;
+		});
+	});
+};
+
+function findUserByPhone(phone, tempUser, pages)
 {
 	let prom = Promise.resolve();
 	if (pages) prom = intercomClient.nextPage(pages);
@@ -111,6 +131,10 @@ function findUserByPhone(phone, pages)
 		// Try to find the user by phone in this list
 		const user = res.body.users.find(function (u)
 		{
+			// If you're looking for real users but this one has no email, exit
+			// since they aren't a real user
+			if (!tempUser && !u.email) return false;
+
 			return formatPhone(u.phone) === phone;
 		});
 
@@ -123,7 +147,7 @@ function findUserByPhone(phone, pages)
 		}
 
 		// If user wasn't found, scroll to next page
-		return findUserByPhone(phone, res.body.pages);
+		return findUserByPhone(phone, tempUser, res.body.pages);
 	});
 };
 
@@ -165,7 +189,6 @@ function createUserSMS(phone, body)
 		to: phone,
 		from: process.env.TWILIO_NUMBER,
 		body: body
-
 	});
 }
 
