@@ -127,44 +127,20 @@ function findUserByPhone(phone, pages)
 	});
 };
 
-function findActiveConvo(userId, pages, existingConvos)
+function findActiveConvo(userId)
 {
-	return findAllUserSMSConvos(userId).then(function (convos)
+	return intercomClient.conversations.list(
 	{
-		if (!convos || !convos.length) return;
-
-		return convos.sort(function (a, b)
-		{
-			return b.updated_at - a.updated_at;
-		})[0];
-	});
-}
-
-function findAllUserSMSConvos(userId, pages, convos)
-{
-	const query = {};
-
-	let prom = Promise.resolve();
-	if (pages) prom = intercomClient.nextPage(pages);
-	else prom = intercomClient.conversations.list(query);
-
-	if (!convos) convos = [];
-
-	return prom.then(function (res)
+		sort: 'updated_at',
+		intercom_user_id: userId
+	}).then(function (res)
 	{
-		// If there are no more results then exit with an error
-		if (!res.body.conversations.length) return convos;
+		if (!res.body.conversations) return;
 
-		// Try to find the user by phone in this list
-		convos = convos.concat(res.body.conversations.filter(function (c)
+		return res.body.conversations.find(function (c)
 		{
 			return c.user.id === userId && isSMSConvo(c);
-		}));
-
-		if (!res.body.pages.next) return convos;
-
-		// If user wasn't found, scroll to next page
-		return findAllUserSMSConvos(userId, res.body.pages, convos);
+		});
 	});
 }
 
