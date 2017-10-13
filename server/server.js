@@ -33,7 +33,7 @@ app.post('/sms', function (req, res)
     {
         messages.sms(req.body).catch(function (err)
         {
-            console.error(JSON.stringify(err.message));
+            console.error(JSON.stringify(err));
         });
         respondTwilio(req, res);
     }
@@ -50,7 +50,7 @@ app.post('/intercom', function (req, res)
     {
         messages.intercom(req.body.data.item).catch(function (err)
         {
-            console.error(JSON.stringify(err.message));
+            console.error(JSON.stringify(err));
         });
         respond200(req, res);
     }
