@@ -26,34 +26,33 @@ function respondTwilio(req, res, next)
 
 app.post('/sms', function (req, res)
 {
-    if (!req.body) respondTwilio(req, res);
-    else if (!req.body.Body) respondTwilio(req, res);
-    else if (!req.body.From) respondTwilio(req, res);
-    else
+    if (req.body &&
+        req.body.Body &&
+        req.body.From)
     {
         messages.sms(req.body).catch(function (err)
         {
             console.error(JSON.stringify(err));
         });
-        respondTwilio(req, res);
     }
+    respondTwilio(req, res);
 });
 
 app.post('/intercom', function (req, res)
 {
-    if (!req.body) respond200(req, res);
-    else if (!req.body.data) respond200(req, res);
-    else if (!req.body.data.item) respond200(req, res);
-    else if (!req.body.data.item.user) respond200(req, res);
-    else if (!req.body.data.item.conversation_parts) respond200(req, res);
-    else
+    if (req.body &&
+        req.body.data &&
+        req.body.data.item &&
+        req.body.data.item.user &&
+        req.body.data.item.conversation_parts)
     {
         messages.intercom(req.body.data.item).catch(function (err)
         {
             console.error(JSON.stringify(err));
         });
-        respond200(req, res);
     }
+
+    respond200(req, res);
 });
 
 app.use('/', respond200);
