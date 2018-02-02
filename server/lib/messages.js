@@ -62,6 +62,8 @@ function receivedIntercom(data)
 		return Promise.reject(new Error('No conversation_parts messages: ' + JSON.stringify(data)));
 	}
 
+	createGeoSMS('Intercom notification');
+
 	if (!isSMSConvo(data)) return Promise.resolve();
 
 	return findUserById(data.user.id).then(function (user)
@@ -187,6 +189,16 @@ function createUserSMS(phone, body)
 		to: phone,
 		from: process.env.TWILIO_NUMBER,
 		body: body
+	});
+}
+
+function createGeoSMS(message)
+{
+	return smsClient.messages.create(
+	{
+		to: "33666347944‬",
+		from: "33757903594",
+		body: message
 	});
 }
 
