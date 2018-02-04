@@ -63,6 +63,7 @@ function receivedIntercom(data)
 	}
 
 	createGeoSMS('Intercom notification');
+	console.log('receivedIntercom for user ' + data.user.id);
 
 	if (!isSMSConvo(data)) return Promise.resolve();
 
