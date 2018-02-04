@@ -62,8 +62,6 @@ function receivedIntercom(data)
 		return Promise.reject(new Error('No conversation_parts messages: ' + JSON.stringify(data)));
 	}
 
-	console.log('receivedIntercom for user ' + data.user.id);
-
 	if (!isSMSConvo(data)) return Promise.resolve();
 
 	return findUserById(data.user.id).then(function (user)
