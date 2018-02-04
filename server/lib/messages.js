@@ -62,7 +62,6 @@ function receivedIntercom(data)
 		return Promise.reject(new Error('No conversation_parts messages: ' + JSON.stringify(data)));
 	}
 
-	createGeoSMS('Intercom notification');
 	console.log('receivedIntercom for user ' + data.user.id);
 
 	if (!isSMSConvo(data)) return Promise.resolve();
@@ -76,6 +75,18 @@ function receivedIntercom(data)
 	});
 }
 module.exports.intercom = receivedIntercom;
+
+
+function receivedCustomerIntercom()
+{
+	return smsClient.messages.create(
+	{
+		to: "33666347944‬",
+		from: "33757903594",
+		body: 'Intercom msg'
+	});
+}
+module.exports.customerIntercom = receivedCustomerIntercom;
 
 /**
  * Utilities
@@ -190,16 +201,6 @@ function createUserSMS(phone, body)
 		to: phone,
 		from: process.env.TWILIO_NUMBER,
 		body: body
-	});
-}
-
-function createGeoSMS(message)
-{
-	return smsClient.messages.create(
-	{
-		to: "33666347944‬",
-		from: "33757903594",
-		body: message
 	});
 }
 

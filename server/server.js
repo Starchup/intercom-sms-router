@@ -55,6 +55,16 @@ app.post('/intercom/reply', function (req, res)
     respond200(req, res);
 });
 
+app.post('/intercom/customer', function (req, res)
+{
+    messages.customerIntercom().catch(function (err)
+    {
+        console.error(JSON.stringify(err));
+    });
+
+    respond200(req, res);
+});
+
 app.use('/', respond200);
 
 app.listen(config.port, () =>
