@@ -38,7 +38,7 @@ app.post('/sms', function (req, res)
     respondTwilio(req, res);
 });
 
-app.post('/intercom', function (req, res)
+app.post('/intercom/reply', function (req, res)
 {
     if (req.body &&
         req.body.data &&
