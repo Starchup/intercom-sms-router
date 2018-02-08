@@ -14,7 +14,7 @@
         "html-to-text": "3.3.0",
         "intercom-client": "2.8.9",
         "jshint": "2.9.5",
-        "node-phonenumber": "0.2.4",
+        "node-phonenumber": "1.0.0",
         "twilio": "3.8.0"
     },
     "scripts":
