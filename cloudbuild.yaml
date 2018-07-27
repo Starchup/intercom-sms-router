@@ -52,6 +52,21 @@ steps:
   - name: 'creds'
     path: /root/.ssh
 
+        # Grab the test script
+- name: "glesage/google-cloud-deployment"
+  args: ['scp', '-i', '/root/.ssh/id_rsa', '-o', 'StrictHostKeyChecking=no', '-o', 'UserKnownHostsFile=/dev/null', 'root@stage.starchup.com:/root/deployments/gcloud/gcb_test.sh', './gcb_test.sh']
+  volumes:
+  - name: 'creds'
+    path: /root/.ssh
+
+    # Run the test script
+- name: "glesage/strong-build-deploy"
+  args: ['bash', './gcb_test.sh']
+  env:
+  - 'BRANCH=$BRANCH_NAME'
+
+
+
        # Build the image on GCB
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'gcr.io/starchup-147119/$REPO_NAME:$REVISION_ID', '.']
